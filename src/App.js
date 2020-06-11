@@ -1,26 +1,49 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import "./styles.css";
+import { useState } from "react";
+import api from "./services/api";
 
 function App() {
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    api.get("repositories").then((response) => {
+      setProjects(response.data);
+    });
+  }, []);
+
   async function handleAddRepository() {
-    // TODO
+    const newProject = {
+      title: `Novo Projeto ${Date.now()}`,
+      url: "www.google.com",
+      techs: ["node", "ReactJs"],
+    };
+    const response = await api.post("repositories", newProject);
+    const project = response.data;
+
+    setProjects([...projects, project]);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    const response = await api.delete(`repositories/${id}`);
+    if ((response.status = 202)) {
+      const localProjects = projects.filter((project) => project.id !== id);
+      setProjects(localProjects);
+    }
   }
 
   return (
     <div>
       <ul data-testid="repository-list">
-        <li>
-          Repositório 1
-
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
-          </button>
-        </li>
+        {projects.map((project) => (
+          <li key={project.id}>
+            {project.title}
+            <button onClick={() => handleRemoveRepository(project.id)}>
+              Remover
+            </button>
+          </li>
+        ))}
       </ul>
 
       <button onClick={handleAddRepository}>Adicionar</button>
